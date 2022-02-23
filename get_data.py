@@ -1,6 +1,9 @@
 import lyricsgenius as lg
 import time
 from pathlib import Path
+import requests
+
+counter = 0
 
 
 # this function reads the contents of a given 
@@ -36,23 +39,36 @@ def write_to_file(filename, lyrics):
 
 # this function fetches n songs from a given list of artists
 def get_lyrics_of_artist(liste, n):
+    global counter
     for name in liste:
         if Path("data\\lyrics\\" + name.replace(" ", "_") + ".txt").is_file():
             if Path("data\\lyrics\\" + name.replace(" ", "_") + ".txt").stat().st_size == 0:
-                songs = (genius.search_artist(name, max_songs=n, sort="popularity")).songs
+                try:
+                    songs = (genius.search_artist(name, max_songs=n, sort="popularity")).songs
+                except requests.exceptions.Timeout:
+                    print("Timeout occurred")
                 lyrics = [song.lyrics for song in songs]
+                counter += len(lyrics)
+                print("Amount of songs: {}".format(counter))
                 write_to_file(name, lyrics)
                 # experimental timeout
-                time.sleep(1)
+                #time.sleep(1)
             print("Skipping {} as its already exists".format(name))
         else:
-            songs = (genius.search_artist(name, max_songs=n, sort="popularity")).songs
+            try:
+                songs = (genius.search_artist(name, max_songs=n, sort="popularity")).songs
+            except requests.exceptions.Timeout:
+                print("Timeout occurred")
+
+            #songs = (genius.search_artist(name, max_songs=n, sort="popularity")).songs
             lyrics = [song.lyrics for song in songs]
+            counter += len(lyrics)
+            print("Amount of songs: {}".format(counter))
             write_to_file(name, lyrics)
             # experimental timeout
-            time.sleep(1)
+            #time.sleep(1)
 
-
+    print("Total Amount of songs saved: {}".format(counter))
 
 
 if __name__ == "__main__":
@@ -61,11 +77,12 @@ if __name__ == "__main__":
     api_key = get_file_contents("apikey")
 
     #create genius object
-    genius = lg.Genius(api_key, skip_non_songs=True, excluded_terms=["(Remix)", "(Live)"], remove_section_headers=True)
+    # excluded_terms=["(Remix)", "(Live)"],
+    genius = lg.Genius(api_key, skip_non_songs=True, remove_section_headers=True)
 
     # read list
     list_of_artists = read_musicans_lists("data\\hip_hop_musicans.txt")
     
     # get lyrics and save them
-    get_lyrics_of_artist(list_of_artists, 1)
+    get_lyrics_of_artist(list_of_artists, 10)
 

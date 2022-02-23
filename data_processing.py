@@ -10,7 +10,10 @@ def read_dir_create_corpus(path):
     corpus = []
     for filename in os.listdir(path):
         with open(path + filename, "r", encoding="utf8") as f:
-            contents = f.read()
+            #contents = f.read()
+            contents = f.readlines()
+            contents = [line for line in contents if "endoftext" not in line]
+            contents = "".join(contents)
 
             try:
                 which_language = detect(contents)
@@ -19,6 +22,7 @@ def read_dir_create_corpus(path):
 
             #if the language is not english, the lyric does not get added
             if which_language == "en":
+
                 corpus.append(contents)
 
 
@@ -28,7 +32,7 @@ def read_dir_create_corpus(path):
 if __name__ == "__main__":
 
     corpus = read_dir_create_corpus("C:\\Users\\Tim\\Desktop\\DH_methods\\data\\lyrics\\")
-
+    print(len(corpus))
     df = pd.DataFrame(corpus)
     
 
