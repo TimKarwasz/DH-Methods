@@ -1,40 +1,79 @@
 import re
 import os
+import time
 import pandas as pd
 from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 from langdetect import detect
+import argparse
 
+
+parser = argparse.ArgumentParser(description='A script for analysing songs of different music genres')
+
+parser.add_argument("--genre", help="Choose the genre, which u want to analyze", default="hiphop")
+
+args = parser.parse_args()
 
 def read_dir_create_corpus(path):
+    forbiddenWords = ['<|', '|>', 'Embed', "embed"]
+    regex = re.compile('|'.join(map(re.escape, forbiddenWords)))
     corpus = []
+    song_counter = 0
     for filename in os.listdir(path):
         with open(path + filename, "r", encoding="utf8") as f:
-            #contents = f.read()
-            contents = f.readlines()
-            contents = [line for line in contents if "endoftext" not in line]
-            contents = "".join(contents)
+            contents = f.read()
+            splitted_in_songs = re.split("endoftext", contents)
+            
+            english_songs_same_artist = []
+            for song in splitted_in_songs:
+                #print(song)
+                try:
+                    which_language = detect(song)
+                except Exception as e:
+                    #print(e)
+                    pass
 
-            try:
-                which_language = detect(contents)
-            except Exception as e:
-                pass
+                #if the language is not english, the lyric does not get added
 
-            #if the language is not english, the lyric does not get added
-            if which_language == "en":
+                if which_language == "en":
+                    cleaned_song = regex.sub("", song)
+                    english_songs_same_artist.append(cleaned_song)
 
-                corpus.append(contents)
+            song_counter += len(english_songs_same_artist)
+            corpus.append(english_songs_same_artist)
 
 
+
+    print("Amount of unique artists: {}".format(len(corpus)))
+    print("Amount of unique songs: {}".format(song_counter))
+    # returns a list, where each item contains all songs from one artist
     return corpus
 
 
-if __name__ == "__main__":
+def write_corpus_to_one_file(corpus, filename):
+    with open("data\\whole_corpora\\" + filename + ".txt", "w", encoding="utf-8") as file:
+        for document in corpus:
+            for song in document:
+                file.write(song)
 
-    corpus = read_dir_create_corpus("C:\\Users\\Tim\\Desktop\\DH_methods\\data\\lyrics\\")
-    print(len(corpus))
+
+def check_word_count(filename):
+    with open("data\\whole_corpora\\" + filename + ".txt", "r", encoding="utf-8") as file:
+        contents = file.readlines()
+
+    word_count = 0
+    for line in contents:
+        word_count += len(line)
+
+    print("Checking of word count : {}".format(word_count))
+
+def create_wordcloud(corpus):
+    word_count = 0
+    for document in corpus:
+        for song in document:
+            word_count += len(song)
+    print("Amount of total words: {}".format(word_count))
     df = pd.DataFrame(corpus)
-    
 
     comment_words = ''
     stopwords = set(STOPWORDS)
@@ -65,4 +104,26 @@ if __name__ == "__main__":
     plt.axis("off")
     plt.tight_layout(pad = 0)
  
-    plt.show()  
+    #plt.show()  
+
+
+if __name__ == "__main__":
+    t = time.process_time()
+
+    if "rock" in args.genre:
+        data_folder = "lyrics_rock"
+    elif "randb" in args.genre:
+        data_folder = "lyrics_RandB"
+    elif "hiphop" in args.genre:
+        data_folder = "lyrics"
+
+
+    corpus = read_dir_create_corpus("data\\" + data_folder + "\\")
+    
+    elapsed_time = time.process_time() - t
+    print("The script took {} seconds".format(elapsed_time))
+
+    write_corpus_to_one_file(corpus, args.genre)
+    check_word_count(args.genre)
+    create_wordcloud(corpus)
+    exit()
