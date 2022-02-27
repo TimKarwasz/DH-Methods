@@ -8,6 +8,7 @@ from langdetect import detect
 import argparse
 
 
+
 parser = argparse.ArgumentParser(description='A script for analysing songs of different music genres')
 
 parser.add_argument("--genre", help="Choose the genre, which u want to analyze", default="hiphop")
@@ -15,6 +16,7 @@ parser.add_argument("--genre", help="Choose the genre, which u want to analyze",
 args = parser.parse_args()
 
 def read_dir_create_corpus(path):
+    # these words will get removed
     forbiddenWords = ['<|', '|>', 'Embed', "embed"]
     regex = re.compile('|'.join(map(re.escape, forbiddenWords)))
     corpus = []
@@ -26,15 +28,14 @@ def read_dir_create_corpus(path):
             
             english_songs_same_artist = []
             for song in splitted_in_songs:
-                #print(song)
+                
                 try:
                     which_language = detect(song)
                 except Exception as e:
-                    #print(e)
+                    print(e)
                     pass
 
                 #if the language is not english, the lyric does not get added
-
                 if which_language == "en":
                     cleaned_song = regex.sub("", song)
                     english_songs_same_artist.append(cleaned_song)
@@ -51,6 +52,7 @@ def read_dir_create_corpus(path):
 
 
 def write_corpus_to_one_file(corpus, filename):
+    # writes all songs in one file
     with open("data\\whole_corpora\\" + filename + ".txt", "w", encoding="utf-8") as file:
         for document in corpus:
             for song in document:
@@ -58,6 +60,7 @@ def write_corpus_to_one_file(corpus, filename):
 
 
 def check_word_count(filename):
+    # this funnction is just for checking purposes
     with open("data\\whole_corpora\\" + filename + ".txt", "r", encoding="utf-8") as file:
         contents = file.readlines()
 
@@ -68,11 +71,13 @@ def check_word_count(filename):
     print("Checking of word count : {}".format(word_count))
 
 def create_wordcloud(corpus):
+    """
     word_count = 0
     for document in corpus:
         for song in document:
             word_count += len(song)
     print("Amount of total words: {}".format(word_count))
+    """
     df = pd.DataFrame(corpus)
 
     comment_words = ''
@@ -120,10 +125,11 @@ if __name__ == "__main__":
 
     corpus = read_dir_create_corpus("data\\" + data_folder + "\\")
     
+
+    #write_corpus_to_one_file(corpus, args.genre)
+    #check_word_count(args.genre)
+    #create_wordcloud(corpus)
+
     elapsed_time = time.process_time() - t
     print("The script took {} seconds".format(elapsed_time))
-
-    write_corpus_to_one_file(corpus, args.genre)
-    check_word_count(args.genre)
-    create_wordcloud(corpus)
     exit()
