@@ -31,8 +31,11 @@ def write_to_file(filename, lyrics):
     filename = filename.replace("/","_")
     filename = filename.replace('"', '_')
     filename = filename.replace("?", "_")
+    filename = filename.replace("`", "_")
+    filename = filename.replace("^", "_")
+    filename = filename.replace("'", "_")
     try:
-        with open( "data\\lyrics\\" + filename.replace(" ", "_") + ".txt", 'w', encoding="utf-8") as file:
+        with open( "data\\lyrics_country\\" + filename.replace(" ", "_") + ".txt", 'w', encoding="utf-8") as file:
             file.write("\n \n   <|endoftext|>   \n \n".join(lyrics))
             print("Successfully saved {} lyrics\n".format(filename))
     except Exception as e:
@@ -47,9 +50,9 @@ def get_lyrics_of_artist(liste, n):
         name = name.replace('"', '_')
         name = name.replace("/","_")
         name = name.replace("?", "_")
-        if Path("data\\lyrics\\" + name.replace(" ", "_") + ".txt").is_file():
-            if Path("data\\lyrics\\" + name.replace(" ", "_") + ".txt").stat().st_size == 0:
-            print("Skipping {} as its already exists".format(name))
+        if Path("data\\lyrics_country\\" + name.replace(" ", "_") + ".txt").is_file():
+            if Path("data\\lyrics_country\\" + name.replace(" ", "_") + ".txt").stat().st_size == 0:
+                print("Skipping {} as its already exists".format(name))
 
         else:
             try:
@@ -76,7 +79,7 @@ if __name__ == "__main__":
     genius = lg.Genius(api_key, skip_non_songs=True, remove_section_headers=True)
 
     # read list
-    list_of_artists = read_musicans_lists("data\\hip_hop_musicans_n_bis_ende.txt")
+    list_of_artists = read_musicans_lists("data\\country_music_musicans_1.txt")
     
     # get lyrics and save them
     get_lyrics_of_artist(list_of_artists, 10)
